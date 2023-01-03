@@ -28,6 +28,7 @@
 #define PL_ENDIAN_H 1
 
 #include <stdint.h>
+#include <intrinsics.h>
 #include "config.h"
 
 /** Swap the 4 bytes of a uint32_t in place, unaligned */

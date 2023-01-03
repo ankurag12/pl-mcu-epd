@@ -39,7 +39,7 @@
 #include "utils.h"
 
 /* Set to 1 to enable verbose debug log messages */
-#define VERBOSE 0
+#define VERBOSE 1
 
 /* Root path on the SD card */
 #define ROOT_SD_PATH "0:"

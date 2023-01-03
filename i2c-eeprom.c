@@ -34,7 +34,7 @@
 #include "utils.h"
 
 /** Set to 1 to enable verbose log messages */
-#define VERBOSE 0
+#define VERBOSE 1
 
 enum i2c_eeprom_flags {
 	EEPROM_16BIT_ADDRESS = 0x01

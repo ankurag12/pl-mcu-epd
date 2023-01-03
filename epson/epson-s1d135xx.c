@@ -42,7 +42,7 @@
 #include <app/parser.h>
 
 /* Set to 1 to enable verbose update and EPD power on/off log messages */
-#define VERBOSE 0
+#define VERBOSE 1
 
 #define DATA_BUFFER_LENGTH              512
 
