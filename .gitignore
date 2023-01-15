@@ -10,3 +10,4 @@ Release
 config.h
 *.pdf
 doc
+.DS_Store

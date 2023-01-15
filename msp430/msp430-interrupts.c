@@ -79,6 +79,7 @@ __interrupt void Port_2(void)
 #pragma vector=PORT2_VECTOR
 #pragma vector=TIMER0_A1_VECTOR
 #pragma vector=RTC_VECTOR
+#pragma vector=USCI_A2_VECTOR
 #endif
 /* Initialize unused ISR vectors with a trap function */
 #pragma vector=USCI_B3_VECTOR
@@ -90,7 +91,6 @@ __interrupt void Port_2(void)
 #pragma vector=TIMER1_A0_VECTOR
 #pragma vector=DMA_VECTOR
 #pragma vector=USCI_B2_VECTOR
-#pragma vector=USCI_A2_VECTOR
 #pragma vector=TIMER0_A0_VECTOR
 #pragma vector=ADC12_VECTOR
 #pragma vector=USCI_B0_VECTOR
