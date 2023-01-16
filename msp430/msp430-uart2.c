@@ -25,49 +25,55 @@ static uint8_t init_done = 0;
 
 // Buffer to store data
 static unsigned char g_buff[BUFFER_SIZE];
-static unsigned int g_buff_ptr=0;
+static unsigned int g_buff_ptr = 0;
 
-unsigned char *get_buffer(void){
+unsigned char* get_buffer(void)
+{
     return &g_buff[0];
 }
 
-int buffer_available_for_read(void) {
-    return (g_buff_ptr==0);
+int buffer_available_for_read(void)
+{
+    return (g_buff_ptr == 0);
 }
 
 int msp430_uart2_getc(void)
 {
-	if (!init_done) {
-	    return -1;
-	}
+    if (!init_done)
+    {
+        return -1;
+    }
 
-    while (!(UCxnIFG & UCRXIFG));
+    while (!(UCxnIFG & UCRXIFG))
+        ;
 
-	return (UCxnRXBUF & 0x00ff);
+    return (UCxnRXBUF & 0x00ff);
 
 }
 
 int msp430_uart2_putc(int c)
 {
-	if (init_done) {
-		while(!(UCxnIFG & UCTXIFG));
-		UCxnTXBUF = c;
-	}
+    if (init_done)
+    {
+        while (!(UCxnIFG & UCTXIFG))
+            ;
+        UCxnTXBUF = c;
+    }
 
-	return c;
+    return c;
 }
 
 int msp430_uart2_puts(const char *s)
 {
-	unsigned int i;
+    unsigned int i;
 
-	if (!init_done)
-		return 1;
+    if (!init_done)
+        return 1;
 
-	for(i = 0; s[i]; i++)
-		msp430_uart2_putc(s[i]);
+    for (i = 0; s[i]; i++)
+        msp430_uart2_putc(s[i]);
 
-	return i;
+    return i;
 }
 
 #pragma vector = USCI_xn_VECTOR
@@ -79,10 +85,11 @@ __interrupt void USCI_ISR(void)
         break;                             // Vector 0 - no interrupt
     case 2:                                   // Vector 2 - RXIFG
         g_buff[g_buff_ptr++] = UCxnRXBUF;                  //  -> RXed character
-        if (g_buff_ptr == BUFFER_SIZE) {
+        if (g_buff_ptr == BUFFER_SIZE)
+        {
             g_buff_ptr = 0;
-            // Wake-up device to process data
-            __bic_SR_register_on_exit(LPM3_bits);
+            // Wake-up device to process data. Doesn't work over LPM1
+            __bic_SR_register_on_exit(LPM1_bits);
         }
         break;
     case 4:
@@ -91,7 +98,6 @@ __interrupt void USCI_ISR(void)
         break;
     }
 }
-
 
 //int msp430_uart2_register_files()
 //{
@@ -125,116 +131,113 @@ __interrupt void USCI_ISR(void)
 //	return 0;
 //}
 
-
 int msp430_uart2_init(struct pl_gpio *gpio, int baud_rate_id, char parity,
-		     int data_bits, int stop_bits)
+                      int data_bits, int stop_bits)
 {
-	static const struct pl_gpio_config gpios[] = {
-		{ UART_TX, PL_GPIO_SPECIAL | PL_GPIO_OUTPUT | PL_GPIO_INIT_L },
-		{ UART_RX, PL_GPIO_SPECIAL | PL_GPIO_INPUT                   },
-	};
+    static const struct pl_gpio_config gpios[] =
+            { { UART_TX, PL_GPIO_SPECIAL | PL_GPIO_OUTPUT | PL_GPIO_INIT_L }, {
+                    UART_RX, PL_GPIO_SPECIAL | PL_GPIO_INPUT }, };
 
-	if (pl_gpio_config_list(gpio, gpios, ARRAY_SIZE(gpios)))
-		return -1;
+    if (pl_gpio_config_list(gpio, gpios, ARRAY_SIZE(gpios)))
+        return -1;
 
-	// hold unit in reset while configuring
-	UCxnCTL1 |= UCSWRST;
+    // hold unit in reset while configuring
+    UCxnCTL1 |= UCSWRST;
 
-	UCxnCTL0 = UCMODE_0;			// Uart Mode (No parity, LSB first, 8 data bits, 1 stop bit)
-	UCxnCTL1 |= UCSSEL_2;			// SMCLK
+    UCxnCTL0 = UCMODE_0;// Uart Mode (No parity, LSB first, 8 data bits, 1 stop bit)
+    UCxnCTL1 |= UCSSEL_2;			// SMCLK
 
-	switch (data_bits)
-	{
-		case 7:
-			UCxnCTL0 |= UC7BIT;
-			break;
-		case 8:
-			UCxnCTL0 &= ~UC7BIT;
-			break;
-		default:
-			return -1;
-	}
+    switch (data_bits)
+    {
+    case 7:
+        UCxnCTL0 |= UC7BIT;
+        break;
+    case 8:
+        UCxnCTL0 &= ~UC7BIT;
+        break;
+    default:
+        return -1;
+    }
 
-	switch (stop_bits)
-	{
-		case 1:
-			UCxnCTL0 &= ~UCSPB;
-			break;
-		case 2:
-			UCxnCTL0 |= UCSPB;
-			break;
-		default:
-			return -1;
-	}
+    switch (stop_bits)
+    {
+    case 1:
+        UCxnCTL0 &= ~UCSPB;
+        break;
+    case 2:
+        UCxnCTL0 |= UCSPB;
+        break;
+    default:
+        return -1;
+    }
 
-	switch (parity)
-	{
-		case 'N':
-			UCxnCTL0 &= ~UCPEN;
-			break;
-		case 'E':
-			UCxnCTL0 |= (UCPEN | UCPAR);
-			break;
-		case 'O':
-			UCxnCTL0 |= UCPEN;
-			break;
-		default:
-			return -1;
-	}
+    switch (parity)
+    {
+    case 'N':
+        UCxnCTL0 &= ~UCPEN;
+        break;
+    case 'E':
+        UCxnCTL0 |= (UCPEN | UCPAR);
+        break;
+    case 'O':
+        UCxnCTL0 |= UCPEN;
+        break;
+    default:
+        return -1;
+    }
 
-	/* These registers taken from Table 34-4 and 34-5 of the
-	 * MSP430 Users guide.
-	 * They are dependent on a 20MHz clock
-	 */
+    /* These registers taken from Table 34-4 and 34-5 of the
+     * MSP430 Users guide.
+     * They are dependent on a 20MHz clock
+     */
 #if CPU_CLOCK_SPEED_IN_HZ != 20000000L
 #error CPU Clock speed not 20MHz - baud rate calculations not valid
 #endif
-	switch (baud_rate_id)
-	{
-		case BR_9600:
-			UCxnBR0 = 130;
-			UCxnBR1 = 0;
-			UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_3);
-			break;
-		case BR_19200:
-			UCxnBR0 = 65;
-			UCxnBR1 = 0;
-			UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_2);
-			break;
-		case BR_38400:
-			UCxnBR0 = 32;
-			UCxnBR1 = 0;
-			UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_9);
-			break;
-		case BR_57600:
-			UCxnBR0 = 21;
-			UCxnBR1 = 0;
-			UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_11);
-			break;
-		case BR_115200:
-			UCxnBR0 = 10;
-			UCxnBR1 = 0;
-			UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_14);
-			break;
-		case BR_230400:
-			UCxnBR0 = 5;
-			UCxnBR1 = 0;
-			UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_7);
-			break;
-		default:
-			return -1;
-	}
+    switch (baud_rate_id)
+    {
+    case BR_9600:
+        UCxnBR0 = 130;
+        UCxnBR1 = 0;
+        UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_3);
+        break;
+    case BR_19200:
+        UCxnBR0 = 65;
+        UCxnBR1 = 0;
+        UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_2);
+        break;
+    case BR_38400:
+        UCxnBR0 = 32;
+        UCxnBR1 = 0;
+        UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_9);
+        break;
+    case BR_57600:
+        UCxnBR0 = 21;
+        UCxnBR1 = 0;
+        UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_11);
+        break;
+    case BR_115200:
+        UCxnBR0 = 10;
+        UCxnBR1 = 0;
+        UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_14);
+        break;
+    case BR_230400:
+        UCxnBR0 = 5;
+        UCxnBR1 = 0;
+        UCxnMCTL = (UCOS16 | UCBRS_0 | UCBRF_7);
+        break;
+    default:
+        return -1;
+    }
 
-	// release unit from reset
-	UCxnCTL1 &= ~UCSWRST;
+    // release unit from reset
+    UCxnCTL1 &= ~UCSWRST;
 
-	UCxnIE |= UCRXIE; // Enable USCI_xn RX interrupt
+    UCxnIE |= UCRXIE; // Enable USCI_xn RX interrupt
 
-	init_done = 1;
-	return 0;
+    init_done = 1;
+    return 0;
 //	return msp430_uart_register_files();
 }
-
 
 //int msp430_uart2_open(const char *path, unsigned flags, int llv_fd)
 //{

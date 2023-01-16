@@ -392,8 +392,8 @@ int main_init(void)
 
 
     while(1) {
-        set_lpm(3);
-        process_data_packet();
+        set_lpm(1); // Doesn't work over LPM1
+        process_and_respond(&g_plat);
 
     }
 

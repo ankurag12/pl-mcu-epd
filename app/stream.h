@@ -8,6 +8,8 @@
 #ifndef APP_STREAM_H_
 #define APP_STREAM_H_
 
-int process_data_packet(void);
+#include <pl/platform.h>
+
+int process_and_respond(struct pl_platform *plat);
 
 #endif /* APP_STREAM_H_ */

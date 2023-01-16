@@ -12,7 +12,7 @@
 #define	BR_115200	5
 #define	BR_230400	6
 
-#define BUFFER_SIZE 5
+#define BUFFER_SIZE 7
 
 struct pl_gpio;
 
